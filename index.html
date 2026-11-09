@@ -1048,7 +1048,7 @@ function updatePlayer(dt) {
   else player.padStayT += dt;
   if (onPad && onPad.kind === 'staff' && !hrOpen()) wrong('Open the HR Office plot first');
   else if (onPad && onPad.kind === 'staff' && hrOpen() && !hrFor(lotByKey(onPad.key))) wrong('Upgrade HR for this plot first');
-  else if (onPad && S.money > 0 && player.padStayT >= 2 && player.payT > 0.05) {
+  else if (onPad && S.money > 0 && player.padStayT >= 0.5 && player.payT > 0.05) {
     player.payT = 0;
     const paid = S.paid[onPad.id] || 0;
     const step = Math.min(onPad.price - paid, S.money, Math.max(1, Math.ceil(onPad.price * 0.035)));
@@ -2149,8 +2149,8 @@ function drawPad(p) {
   const w = ctx.measureText(lab).width + 14;
   rr(-w / 2, -h - 18, w, ls + 6, (ls + 6) / 2); ctx.fillStyle = locked ? 'rgba(160,40,40,0.85)' : 'rgba(59,36,22,0.78)'; ctx.fill();
   txt(lab, 0, -h - 18 + (ls + 6) / 2, ls, '#ffffff', null, 600);
-  if (player.padStayId === p.id && player.padStayT < 2 && !locked) {
-    const prog = clamp(player.padStayT / 2, 0, 1);
+  if (player.padStayId === p.id && player.padStayT < 0.5 && !locked) {
+    const prog = clamp(player.padStayT / 0.5, 0, 1);
     const cr = h + 6;
     ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(76,217,100,0.9)'; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.arc(0, 0, cr, -Math.PI / 2, -Math.PI / 2 + prog * Math.PI * 2); ctx.stroke();
@@ -2845,7 +2845,7 @@ function updateCoinsHud(dt) {
   if (coinPopT > 0) { coinPopT -= dt; if (coinPopT <= 0) coinsBtn.classList.remove('pop'); }
   let f = '';
   const staffBlocked = curPad && curPad.kind === 'staff' && (!hrOpen() || !hrFor(lotByKey(curPad.key)));
-  if (curPad && !staffBlocked && player.padStayT >= 2 && S.money < curPad.price - (S.paid[curPad.id] || 0)) f = curPad.id + '|' + coinCost(curPad);
+  if (curPad && !staffBlocked && player.padStayT >= 0.5 && S.money < curPad.price - (S.paid[curPad.id] || 0)) f = curPad.id + '|' + coinCost(curPad);
   if (f !== shownFinish) { shownFinish = f; finishBtn.hidden = !f; if (f) finishCostEl.textContent = fmt(+f.split('|')[1]); }
   const tc = player.carry > 0 ? player.carry : 0;
   if (tc !== shownTrash) { shownTrash = tc; trashBtn.hidden = tc === 0; trashCostEl.textContent = tc; }
