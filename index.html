@@ -2699,12 +2699,6 @@ function draw() {
   ctx.setTransform(dpr * scale, 0, 0, dpr * scale, -camX * scale * dpr, -camY * scale * dpr);
   const cx0 = Math.floor(camX / CELL_W) - 1, cx1 = Math.floor((camX + viewW) / CELL_W) + 1;
   const cy0 = Math.floor(camY / CELL_H) - 1, cy1 = Math.floor((camY + viewH) / CELL_H) + 1;
-  ctx.fillStyle = '#d2b47a';
-  for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
-    const ox = cx * CELL_W, oy = cy * CELL_H;
-    ctx.fillRect(ox + 400, oy, 60, CELL_H);
-    ctx.fillRect(ox, oy + 706, CELL_W, 54);
-  }
   const vis = [];
   for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
     const lot = cells.get(ck(cx, cy));
@@ -2713,6 +2707,12 @@ function draw() {
     cellGrad.addColorStop(0, '#86d060'); cellGrad.addColorStop(0.6, '#7cc456'); cellGrad.addColorStop(1, '#6aae48');
     ctx.fillStyle = cellGrad; ctx.fillRect(lot.ox, lot.oy, CELL_W, CELL_H);
     vis.push(lot);
+  }
+  ctx.fillStyle = '#d2b47a';
+  for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
+    const ox = cx * CELL_W, oy = cy * CELL_H;
+    ctx.fillRect(ox + 400, oy, 60, CELL_H);
+    ctx.fillRect(ox, oy + 706, CELL_W, 54);
   }
   for (const l of vis) drawCellBase(l);
   for (const l of vis) {
