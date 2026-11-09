@@ -315,6 +315,11 @@ function buzz(ms) { if (!S.vibe) return; try { if (navigator.vibrate) navigator.
 const cv = document.getElementById('game');
 let ctx = cv.getContext('2d');
 
+const playerImg = new Image();
+playerImg.src = 'player-sprite.png';
+let playerImgReady = false;
+playerImg.onload = () => { playerImgReady = true; };
+
 /* ================= sprite system ================= */
 const sprites = {};
 function makeSprite(w, h, drawFn, pad) {
@@ -452,7 +457,7 @@ const BRIGHT = ['#ff4d6d', '#ffd23f', '#3fa7ff', '#2ed39a', '#9b5cff', '#ff9a3c'
 const S = { money: 0, coins: 10, paid: {}, unlocked: {}, levels: {}, tut: 0, sales: 0, trashed: 0,
   town: 0, level: 1, xp: 0, album: {}, quests: [], qDone: 0, streak: 0, lastDaily: '', sound: true, vibe: true, qOpen: true };
 try { const pre = JSON.parse(localStorage.getItem('midway-donuts-v5') || 'null'); if (pre) S.town = num(pre.town); } catch (e) {}
-const player = { x: 200, y: 280, r: 11, speed: 118, carry: 0, carryType: null, cap: 2, face: 1, walk: 0, moving: false, pickT: 0, dropT: 0, payT: 0, padStayT: 0, padStayId: null };
+const player = { x: 200, y: 280, r: 11, speed: 118, carry: 0, carryType: null, cap: 2, face: 1, lastDir: 'down', walk: 0, moving: false, pickT: 0, dropT: 0, payT: 0, padStayT: 0, padStayId: null };
 const cells = new Map(), lotMap = new Map();
 let lots = [], staff = [], floats = [], flyers = [], confetti = [], visitors = [];
 let time = 0, saveT = 0, wrongT = -9, wrongMsg = '', openRides = 0, nOpen = 0;
@@ -955,6 +960,10 @@ function updatePlayer(dt) {
   if (walkable(nx, py, player.r)) player.x = nx;
   if (walkable(player.x, ny, player.r)) player.y = ny;
   if (Math.abs(v.x) > 0.2) player.face = v.x > 0 ? 1 : -1;
+  if (player.moving) {
+    if (Math.abs(v.x) >= Math.abs(v.y)) player.lastDir = v.x > 0 ? 'right' : 'left';
+    else player.lastDir = v.y > 0 ? 'down' : 'up';
+  }
   if (player.moving) player.walk += dt * 11 * Math.hypot(v.x, v.y);
   collide(player, player.r, obstacles());
   if (!walkable(player.x, player.y, player.r)) { player.x = px; player.y = py; }
@@ -2184,8 +2193,35 @@ function drawPlush(x, y, s, fancy, idx) {
 function drawPlayer() {
   const lot = lotByKey(player.carryType);
   const item = player.carryType === 'trash' ? 'trash' : player.carryType === 'prize' ? 'plush' : lot ? lot.type : 'donut';
-  drawPerson(player, { shirt: '#ef4b5b', skin: '#f1c7a1', hair: '#3a2416', apron: '#fff6e8', hat: 'cap', hatColor: '#ef4b5b',
-    stack: player.carry, item, boost: lot ? lot.boosted : false, max: player.carry >= player.cap });
+  if (playerImgReady) {
+    const x = player.x, y = player.y;
+    const FW = 1254 / 4, FH = 1254 / 4;
+    let row;
+    const dir = player.lastDir;
+    if (dir === 'down') row = 0;
+    else if (dir === 'left') row = 1;
+    else if (dir === 'right') row = 2;
+    else row = 3;
+    const col = player.moving ? 1 + (Math.floor(player.walk) % 3) : 0;
+    const sx = col * FW, sy = row * FH;
+    const drawH = 48, drawW = 48;
+    const shGrad = ctx.createRadialGradient(x, y, 0, x, y, 12);
+    shGrad.addColorStop(0, 'rgba(0,0,0,0.22)');
+    shGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = shGrad;
+    ctx.beginPath(); ctx.ellipse(x, y, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.drawImage(playerImg, sx, sy, FW, FH, x - drawW / 2, y - drawH + 6, drawW, drawH);
+    const n = player.carry;
+    if (n > 0) {
+      const bob = player.moving ? Math.abs(Math.sin(player.walk)) * 2 : 0;
+      const ih = ITEM_H[item] || 4.2;
+      for (let i = 0; i < n; i++) drawItem(item, x, y - 17 - bob - i * ih, 1, lot ? lot.boosted : false, i);
+      if (player.carry >= player.cap) txt('MAX', x, y - 30 - bob - n * ih, 11, '#ffffff', '#ef4b5b');
+    }
+  } else {
+    drawPerson(player, { shirt: '#ef4b5b', skin: '#f1c7a1', hair: '#3a2416', apron: '#fff6e8', hat: 'cap', hatColor: '#ef4b5b',
+      stack: player.carry, item, boost: lot ? lot.boosted : false, max: player.carry >= player.cap });
+  }
 }
 function drawStaff(w) {
   const lot = w.lot, th = lot.def.theme;
