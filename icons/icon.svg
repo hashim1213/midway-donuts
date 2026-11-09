@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#7cc456"/>
+  <!-- donut shadow -->
+  <ellipse cx="256" cy="290" rx="120" ry="62" fill="#5a9a3a"/>
+  <!-- donut body -->
+  <ellipse cx="256" cy="260" rx="120" ry="62" fill="#e9a04f"/>
+  <!-- glaze -->
+  <ellipse cx="256" cy="253" rx="96" ry="47" fill="#ff7eb3"/>
+  <!-- hole -->
+  <ellipse cx="256" cy="256" rx="32" ry="16" fill="#7cc456"/>
+  <!-- sprinkles -->
+  <rect x="188" y="230" width="14" height="8" rx="3" fill="#ffffff" transform="rotate(-15 195 234)"/>
+  <rect x="302" y="248" width="14" height="8" rx="3" fill="#5fd0ff" transform="rotate(20 309 252)"/>
+  <rect x="240" y="218" width="14" height="8" rx="3" fill="#ffe14d" transform="rotate(10 247 222)"/>
+  <rect x="280" y="222" width="12" height="7" rx="3" fill="#7dff9a" transform="rotate(-10 286 226)"/>
+  <rect x="210" y="250" width="12" height="7" rx="3" fill="#ffffff" transform="rotate(25 216 254)"/>
+  <!-- title -->
+  <text x="256" y="170" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="52" fill="#fff6e8" letter-spacing="2">MIDWAY</text>
+</svg>
