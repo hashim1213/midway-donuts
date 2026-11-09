@@ -304,9 +304,11 @@ export function ejectPlayer() {
 }
 
 export function resize() {
-  const vv = window.visualViewport;
-  const w = vv ? vv.width : cv.clientWidth;
-  const h = vv ? vv.height : cv.clientHeight;
+  const wrap = cv.parentElement;
+  const w = wrap.clientWidth;
+  const h = wrap.clientHeight;
+  cv.style.width = w + 'px';
+  cv.style.height = h + 'px';
   state.cssW = w; state.cssH = h;
   state.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
   cv.width = Math.max(1, Math.round(w * state.dpr));
