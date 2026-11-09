@@ -2299,14 +2299,28 @@ function drawCharWalk(e, charIdx, drawW, drawH) {
   if (!def || !def.walkImg.ready) return false;
   const FW = 1254 / 4, FH = 1254 / 4;
   const dir = e.lastDir || 'down';
-  let row, idleCol, walkCol;
-  if (dir === 'down') { row = def.wr; idleCol = 0; walkCol = 1; }
-  else if (dir === 'up') { row = def.wr; idleCol = 2; walkCol = 3; }
-  else if (dir === 'left') { row = def.wr + 1; idleCol = 0; walkCol = 1; }
-  else { row = def.wr + 1; idleCol = 2; walkCol = 3; }
-  const col = e.moving ? (Math.sin(e.walk * 4) > 0 ? walkCol : idleCol) : idleCol;
+  let row, col, flip = false;
+  if (dir === 'down') {
+    row = def.wr;
+    col = e.moving ? (Math.sin(e.walk * 4) > 0 ? 1 : 0) : 0;
+  } else if (dir === 'up') {
+    row = def.wr;
+    col = e.moving ? (Math.sin(e.walk * 4) > 0 ? 3 : 2) : 2;
+  } else {
+    row = def.wr + 1;
+    col = e.moving ? (Math.floor(e.walk) % 4) : 0;
+    if (dir === 'right') flip = true;
+  }
   drawSpriteShadow(e.x, e.y);
-  ctx.drawImage(def.walkImg, col * FW, row * FH, FW, FH, e.x - drawW / 2, e.y - drawH + 6, drawW, drawH);
+  if (flip) {
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.scale(-1, 1);
+    ctx.drawImage(def.walkImg, col * FW, row * FH, FW, FH, -drawW / 2, -drawH + 6, drawW, drawH);
+    ctx.restore();
+  } else {
+    ctx.drawImage(def.walkImg, col * FW, row * FH, FW, FH, e.x - drawW / 2, e.y - drawH + 6, drawW, drawH);
+  }
   return true;
 }
 function drawCharSit(e, charIdx, drawW, drawH) {
