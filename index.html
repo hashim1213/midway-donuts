@@ -320,6 +320,21 @@ playerImg.src = 'player-sprite.png';
 let playerImgReady = false;
 playerImg.onload = () => { playerImgReady = true; };
 
+const chefImg = new Image();
+chefImg.src = 'chef-sprite.png';
+let chefImgReady = false;
+chefImg.onload = () => { chefImgReady = true; };
+
+const staffImg = new Image();
+staffImg.src = 'employee-manager-sprites.png';
+let staffImgReady = false;
+staffImg.onload = () => { staffImgReady = true; };
+
+const townImg = new Image();
+townImg.src = 'town-people-sprite.png';
+let townImgReady = false;
+townImg.onload = () => { townImgReady = true; };
+
 /* ================= sprite system ================= */
 const sprites = {};
 function makeSprite(w, h, drawFn, pad) {
@@ -774,7 +789,7 @@ function spawnStaff(lot, role) {
   else if (role === 'barker') home = { x: lot.barker.x, y: lot.barker.y };
   else if (role === 'runner') home = { x: ox + 120, y: oy + 470 };
   else home = lot.kind === 'food' ? { x: ox + 326, y: oy + 312 } : lot.kind === 'ride' ? { x: ox + 374, y: oy + 424 } : { x: ox + 290, y: oy + 474 };
-  staff.push({ lot, role, x: home.x, y: home.y, home, state: 'idle', carry: 0, t: 0, target: null, walk: 0, moving: false, face: 1, base: role === 'cleaner' ? 85 : 92, speed: (role === 'cleaner' ? 85 : 92) * staffMult() });
+  staff.push({ lot, role, x: home.x, y: home.y, home, state: 'idle', carry: 0, t: 0, target: null, walk: 0, moving: false, face: 1, lastDir: 'down', base: role === 'cleaner' ? 85 : 92, speed: (role === 'cleaner' ? 85 : 92) * staffMult() });
 }
 
 /* ================= collision + camera ================= */
@@ -906,6 +921,8 @@ function moveTo(e, tx, ty, sp, dt) {
   e.x += dx / d * step; e.y += dy / d * step;
   e.moving = true; e.walk += dt * 9;
   if (Math.abs(dx) > 1) e.face = dx > 0 ? 1 : -1;
+  if (Math.abs(dx) >= Math.abs(dy)) e.lastDir = dx > 0 ? 'right' : 'left';
+  else e.lastDir = dy > 0 ? 'down' : 'up';
   return false;
 }
 
@@ -1044,7 +1061,7 @@ function spawnCustomer(lot) {
   const c = {
     lot, x: clamp(lot.qx + side * rand(110, 200), lot.ox + 10, lot.ox + CELL_W - 10), y: lot.oy + rand(722, 748), state: 'enter',
     want: 1, got: 0, seat: null, noSeat: false, noPrize: false, station: null, win: false, prizeIdx: -1,
-    shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: 0, moving: false, face: 1, t: 0, age: 0, alpha: 0,
+    shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: 0, moving: false, face: 1, lastDir: 'down', spriteIdx: Math.floor(Math.random() * 8), t: 0, age: 0, alpha: 0,
     speed: rand(62, 80), atFront: false, exitDelay: 0, balloon: Math.random() < 0.2 ? pick(BALLOONS) : null
   };
   c.path = [{ x: lot.qx, y: lot.oy + 735 }];
@@ -1327,9 +1344,9 @@ function updateRunner(b, dt) {
 function newVisitor(init) {
   const near = lots.filter(l => inView(l.ox - 150, l.ox + CELL_W + 150, l.oy - 150, l.oy + CELL_H + 150));
   const l = pick(near.length ? near : lots), dir = Math.random() < 0.5 ? 1 : -1, sp = rand(22, 42);
-  const v = { shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: rand(0, 6), moving: true, face: dir, balloon: Math.random() < 0.45 ? pick(BALLOONS) : null };
-  if (Math.random() < 0.35) Object.assign(v, { x: l.ox + rand(412, 448), y: init ? l.oy + rand(0, CELL_H) : (dir > 0 ? camY - 30 : camY + viewH + 30), vx: 0, vy: dir * sp, face: 1 });
-  else Object.assign(v, { x: init ? rand(camX, camX + viewW) : (dir > 0 ? camX - 30 : camX + viewW + 30), y: l.oy + rand(720, 752), vx: dir * sp, vy: 0 });
+  const v = { shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: rand(0, 6), moving: true, face: dir, lastDir: 'down', spriteIdx: Math.floor(Math.random() * 8), balloon: Math.random() < 0.45 ? pick(BALLOONS) : null };
+  if (Math.random() < 0.35) Object.assign(v, { x: l.ox + rand(412, 448), y: init ? l.oy + rand(0, CELL_H) : (dir > 0 ? camY - 30 : camY + viewH + 30), vx: 0, vy: dir * sp, face: 1, lastDir: dir > 0 ? 'down' : 'up' });
+  else Object.assign(v, { x: init ? rand(camX, camX + viewW) : (dir > 0 ? camX - 30 : camX + viewW + 30), y: l.oy + rand(720, 752), vx: dir * sp, vy: 0, lastDir: dir > 0 ? 'right' : 'left' });
   return v;
 }
 function updateVisitors(dt) {
@@ -2194,50 +2211,82 @@ function drawPlayer() {
   const lot = lotByKey(player.carryType);
   const item = player.carryType === 'trash' ? 'trash' : player.carryType === 'prize' ? 'plush' : lot ? lot.type : 'donut';
   if (playerImgReady) {
-    const x = player.x, y = player.y;
-    const FW = 1254 / 4, FH = 1254 / 4;
-    let row;
-    const dir = player.lastDir;
-    if (dir === 'down') row = 0;
-    else if (dir === 'left') row = 1;
-    else if (dir === 'right') row = 2;
-    else row = 3;
+    const row = dirCol4(player);
     const col = player.moving ? 1 + (Math.floor(player.walk) % 3) : 0;
-    const sx = col * FW, sy = row * FH;
-    const drawH = 48, drawW = 48;
-    const shGrad = ctx.createRadialGradient(x, y, 0, x, y, 12);
-    shGrad.addColorStop(0, 'rgba(0,0,0,0.22)');
-    shGrad.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = shGrad;
-    ctx.beginPath(); ctx.ellipse(x, y, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.drawImage(playerImg, sx, sy, FW, FH, x - drawW / 2, y - drawH + 6, drawW, drawH);
-    const n = player.carry;
-    if (n > 0) {
+    drawSpriteSheet(playerImg, player, row, col, 48, 48);
+    drawSpriteItems(player, player.carry, item, lot ? lot.boosted : false);
+    if (player.carry >= player.cap) {
       const bob = player.moving ? Math.abs(Math.sin(player.walk)) * 2 : 0;
       const ih = ITEM_H[item] || 4.2;
-      for (let i = 0; i < n; i++) drawItem(item, x, y - 17 - bob - i * ih, 1, lot ? lot.boosted : false, i);
-      if (player.carry >= player.cap) txt('MAX', x, y - 30 - bob - n * ih, 11, '#ffffff', '#ef4b5b');
+      txt('MAX', player.x, player.y - 30 - bob - player.carry * ih, 11, '#ffffff', '#ef4b5b');
     }
   } else {
     drawPerson(player, { shirt: '#ef4b5b', skin: '#f1c7a1', hair: '#3a2416', apron: '#fff6e8', hat: 'cap', hatColor: '#ef4b5b',
       stack: player.carry, item, boost: lot ? lot.boosted : false, max: player.carry >= player.cap });
   }
 }
+function drawSpriteShadow(x, y) {
+  const shGrad = ctx.createRadialGradient(x, y, 0, x, y, 12);
+  shGrad.addColorStop(0, 'rgba(0,0,0,0.22)');
+  shGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = shGrad;
+  ctx.beginPath(); ctx.ellipse(x, y, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+}
+function dirCol4(e) {
+  const dir = e.lastDir || 'down';
+  if (dir === 'down') return 0;
+  if (dir === 'left') return 1;
+  if (dir === 'right') return 2;
+  return 3;
+}
+function drawSpriteSheet(img, e, row, col, drawW, drawH) {
+  const FW = 1254 / 4, FH = 1254 / 4;
+  drawSpriteShadow(e.x, e.y);
+  ctx.drawImage(img, col * FW, row * FH, FW, FH, e.x - drawW / 2, e.y - drawH + 6, drawW, drawH);
+}
+function drawSpriteItems(e, n, item, boosted) {
+  if (n <= 0) return;
+  const bob = e.moving ? Math.abs(Math.sin(e.walk)) * 2 : 0;
+  const ih = ITEM_H[item] || 4.2;
+  for (let i = 0; i < n; i++) drawItem(item, e.x, e.y - 17 - bob - i * ih, 1, boosted, i);
+}
 function drawStaff(w) {
   const lot = w.lot, th = lot.def.theme;
-  if (w.role === 'helper') drawPerson(w, { shirt: '#fff6e8', skin: '#c98c62', hair: '#1d1d1d', apron: th, hat: 'chef', stack: w.carry, item: lot.type, boost: lot.boosted });
-  else if (w.role === 'cashier') drawPerson(w, { shirt: th, skin: '#e8b48e', hair: '#8a3b22', apron: '#fff6e8', hat: 'cap', hatColor: '#ffd23f' });
-  else if (w.role === 'operator') drawPerson(w, { shirt: th, skin: '#9a6340', hair: '#1d1d1d', hat: 'cap', hatColor: '#ffd23f' });
-  else if (w.role === 'barker') drawPerson(w, { shirt: '#ef4b5b', skin: '#e8b48e', hair: '#1d1d1d', apron: '#fff6e8', hat: 'cap', hatColor: '#2f3540' });
-  else if (w.role === 'runner') drawPerson(w, { shirt: th, skin: '#f6d2b5', hair: '#c8902f', hat: 'bandana', hatColor: '#ffd23f', stack: w.carry, item: 'plush', boost: lot.boosted });
-  else if (w.role === 'manager') drawPerson(w, { shirt: '#2f3540', skin: '#f1c7a1', hair: '#5a5a5a', tie: '#ef4b5b', clip: true });
-  else drawPerson(w, { shirt: '#2ec4a6', skin: '#f6d2b5', hair: '#6b3f1f', apron: '#ffffff', hat: 'bandana', hatColor: '#ffd23f', stack: w.carry, item: 'trash' });
+  if (w.role === 'helper' && chefImgReady) {
+    const row = dirCol4(w);
+    const col = w.moving ? 1 + (Math.floor(w.walk) % 3) : 0;
+    drawSpriteSheet(chefImg, w, row, col, 48, 48);
+    drawSpriteItems(w, w.carry, lot.type, lot.boosted);
+  } else if (staffImgReady && (w.role === 'cashier' || w.role === 'operator' || w.role === 'barker' || w.role === 'runner' || w.role === 'manager')) {
+    let staffRow;
+    if (w.role === 'cashier') staffRow = 0;
+    else if (w.role === 'operator') staffRow = 1;
+    else if (w.role === 'barker' || w.role === 'runner') staffRow = 2;
+    else staffRow = 3;
+    const col = dirCol4(w);
+    drawSpriteSheet(staffImg, w, staffRow, col, 48, 48);
+    if (w.role === 'runner') drawSpriteItems(w, w.carry, 'plush', lot.boosted);
+    if (w.role === 'manager' && w.carry > 0) drawSpriteItems(w, w.carry, 'trash', false);
+  } else {
+    if (w.role === 'helper') drawPerson(w, { shirt: '#fff6e8', skin: '#c98c62', hair: '#1d1d1d', apron: th, hat: 'chef', stack: w.carry, item: lot.type, boost: lot.boosted });
+    else if (w.role === 'cashier') drawPerson(w, { shirt: th, skin: '#e8b48e', hair: '#8a3b22', apron: '#fff6e8', hat: 'cap', hatColor: '#ffd23f' });
+    else if (w.role === 'operator') drawPerson(w, { shirt: th, skin: '#9a6340', hair: '#1d1d1d', hat: 'cap', hatColor: '#ffd23f' });
+    else if (w.role === 'barker') drawPerson(w, { shirt: '#ef4b5b', skin: '#e8b48e', hair: '#1d1d1d', apron: '#fff6e8', hat: 'cap', hatColor: '#2f3540' });
+    else if (w.role === 'runner') drawPerson(w, { shirt: th, skin: '#f6d2b5', hair: '#c8902f', hat: 'bandana', hatColor: '#ffd23f', stack: w.carry, item: 'plush', boost: lot.boosted });
+    else if (w.role === 'manager') drawPerson(w, { shirt: '#2f3540', skin: '#f1c7a1', hair: '#5a5a5a', tie: '#ef4b5b', clip: true });
+    else drawPerson(w, { shirt: '#2ec4a6', skin: '#f6d2b5', hair: '#6b3f1f', apron: '#ffffff', hat: 'bandana', hatColor: '#ffd23f', stack: w.carry, item: 'trash' });
+  }
 }
 function bubble(x, y) {
   const sp = sprites['bubble'];
   if (sp) { ctx.drawImage(sp, x - sp._ox, y - sp._oy); return; }
   rr(x - 22, y - 12, 44, 24, 10); ctx.fillStyle = '#ffffff'; ctx.fill();
   ctx.beginPath(); ctx.moveTo(x - 5, y + 11); ctx.lineTo(x, y + 18); ctx.lineTo(x + 5, y + 11); ctx.fill();
+}
+function townSpritePos(idx) {
+  const row = Math.floor(idx / 2);
+  const baseCol = (idx % 2) * 2;
+  return { row, baseCol };
 }
 function drawCustomer(c) {
   if (c.state === 'riding' || (c.state === 'leaving' && c.exitDelay > 0)) return;
@@ -2246,7 +2295,23 @@ function drawCustomer(c) {
   let stack = 0, item = lot.type, idx = 0;
   if (food && (c.state === 'queue' || c.state === 'toTable')) stack = c.got;
   if (lot.kind === 'game' && c.prizeIdx >= 0) { stack = 1; item = 'plush'; idx = c.prizeIdx; }
-  drawPerson(c, { shirt: c.shirt, skin: c.skin, hair: c.hair, sit: c.state === 'eating', stack, item, idx, boost: lot.boosted, balloon: c.balloon });
+  if (townImgReady && c.spriteIdx != null && c.state !== 'eating') {
+    const tp = townSpritePos(c.spriteIdx);
+    const dir = c.lastDir || 'down';
+    const facingBack = (dir === 'up');
+    const col = tp.baseCol + (facingBack ? 1 : 0);
+    drawSpriteSheet(townImg, c, tp.row, col, 44, 44);
+    if (stack > 0) drawSpriteItems(c, stack, item, lot.boosted);
+    if (c.balloon) {
+      const bx = c.x + 12, byy = c.y - 70 + Math.sin(time * 2 + c.x) * 2;
+      ctx.strokeStyle = 'rgba(60,40,30,0.6)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(c.x + 8, c.y - 18); ctx.quadraticCurveTo(c.x + 14, c.y - 40, bx, byy + 10); ctx.stroke();
+      ctx.fillStyle = c.balloon; ctx.beginPath(); ctx.ellipse(bx, byy, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.ellipse(bx - 3, byy - 4, 2, 3, 0, 0, Math.PI * 2); ctx.fill();
+    }
+  } else {
+    drawPerson(c, { shirt: c.shirt, skin: c.skin, hair: c.hair, sit: c.state === 'eating', stack, item, idx, boost: lot.boosted, balloon: c.balloon });
+  }
   const by = c.y - 70 + Math.sin(time * 4) * 1.5;
   if (food && c.atFront && c.got < c.want) {
     bubble(c.x, by);
@@ -2656,7 +2721,21 @@ function draw() {
   }
   for (const w of staff) if (inView(w.x - 30, w.x + 30, w.y - 80, w.y + 20)) items.push({ y: w.y + 0.1, d: () => drawStaff(w) });
   items.push({ y: player.y, d: drawPlayer });
-  for (const v of visitors) if (inView(v.x - 30, v.x + 30, v.y - 80, v.y + 20)) items.push({ y: v.y, d: () => drawPerson(v, { shirt: v.shirt, skin: v.skin, hair: v.hair, balloon: v.balloon }) });
+  for (const v of visitors) if (inView(v.x - 30, v.x + 30, v.y - 80, v.y + 20)) items.push({ y: v.y, d: () => {
+    if (townImgReady && v.spriteIdx != null) {
+      const tp = townSpritePos(v.spriteIdx);
+      const dir = v.lastDir || 'down';
+      const col = tp.baseCol + (dir === 'up' ? 1 : 0);
+      drawSpriteSheet(townImg, v, tp.row, col, 44, 44);
+      if (v.balloon) {
+        const bx = v.x + 12, byy = v.y - 70 + Math.sin(time * 2 + v.x) * 2;
+        ctx.strokeStyle = 'rgba(60,40,30,0.6)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(v.x + 8, v.y - 18); ctx.quadraticCurveTo(v.x + 14, v.y - 40, bx, byy + 10); ctx.stroke();
+        ctx.fillStyle = v.balloon; ctx.beginPath(); ctx.ellipse(bx, byy, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.ellipse(bx - 3, byy - 4, 2, 3, 0, 0, Math.PI * 2); ctx.fill();
+      }
+    } else drawPerson(v, { shirt: v.shirt, skin: v.skin, hair: v.hair, balloon: v.balloon });
+  } });
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.d();
 
