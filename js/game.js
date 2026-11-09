@@ -304,12 +304,14 @@ export function ejectPlayer() {
 }
 
 export function resize() {
-  const r = cv.getBoundingClientRect();
-  state.cssW = r.width; state.cssH = r.height;
+  const vv = window.visualViewport;
+  const w = vv ? vv.width : cv.clientWidth;
+  const h = vv ? vv.height : cv.clientHeight;
+  state.cssW = w; state.cssH = h;
   state.dpr = Math.min(window.devicePixelRatio || 1, 2.5);
-  cv.width = Math.max(1, Math.round(state.cssW * state.dpr));
-  cv.height = Math.max(1, Math.round(state.cssH * state.dpr));
-  state.scale = Math.min(state.cssW / W, state.cssH / H) || 1;
+  cv.width = Math.max(1, Math.round(w * state.dpr));
+  cv.height = Math.max(1, Math.round(h * state.dpr));
+  state.scale = Math.min(w / W, h / H) || 1;
   updateCamera(0, true);
 }
 
@@ -327,7 +329,7 @@ export function updateCamera(dt, snap) {
 }
 
 /* ---------- input ---------- */
-const JOY_R = 46;
+const JOY_R = 56;
 export function inputVec() {
   let x = 0, y = 0;
   if (keys.arrowleft || keys.a) x -= 1;
@@ -366,6 +368,8 @@ export function setupInput() {
   window.addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true; if (e.key.startsWith('Arrow')) e.preventDefault(); });
   window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
   window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; joy.on = false; });
+  cv.addEventListener('contextmenu', e => e.preventDefault());
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', () => resize());
 }
 
 /* ---------- effects ---------- */

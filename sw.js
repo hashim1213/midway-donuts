@@ -1,4 +1,4 @@
-const CACHE = 'midway-v2';
+const CACHE = 'midway-v3';
 const SHELL = [
   '/',
   '/index.html',

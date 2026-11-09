@@ -1619,6 +1619,6 @@ export function draw() {
     ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 3; ctx.stroke();
     let dx = joy.x - joy.ox, dy = joy.y - joy.oy; const m = Math.hypot(dx, dy);
     if (m > JOY_R) { dx = dx / m * JOY_R; dy = dy / m * JOY_R; }
-    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ell(joy.ox + dx, joy.oy + dy, 20, 20); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)'; ell(joy.ox + dx, joy.oy + dy, 24, 24); ctx.fill();
   }
 }
