@@ -2603,20 +2603,6 @@ function drawGameGround(lot) {
 /* ================= drawing: world ================= */
 function drawCellBase(lot) {
   const ox = lot.ox, oy = lot.oy;
-  const spPath = sprites['cell-path'];
-  if (spPath) ctx.drawImage(spPath, ox, oy + 706);
-  else {
-    const pathGrad = ctx.createLinearGradient(ox, oy + 706, ox, oy + 760);
-    pathGrad.addColorStop(0, '#d9bd84'); pathGrad.addColorStop(1, '#c4a870');
-    ctx.fillStyle = pathGrad; ctx.fillRect(ox, oy + 706, CELL_W, 54);
-  }
-  const spSide = sprites['cell-side'];
-  if (spSide) ctx.drawImage(spSide, ox + 400, oy);
-  else {
-    const sideGrad = ctx.createLinearGradient(ox + 400, oy, ox + 460, oy);
-    sideGrad.addColorStop(0, '#d9bd84'); sideGrad.addColorStop(1, '#c4a870');
-    ctx.fillStyle = sideGrad; ctx.fillRect(ox + 400, oy, 60, CELL_H);
-  }
   ctx.fillStyle = 'rgba(120,85,40,0.12)';
   for (let k = 0; k < 14; k++) { ell(ox + 10 + (hash(lot.cx, lot.cy, k) % 440), oy + 710 + (k % 4) * 11, 2.5 + (k % 3), 1.2); ctx.fill(); }
   for (let k = 0; k < 10; k++) { ell(ox + 406 + (hash(lot.cx, lot.cy, k + 40) % 44), oy + 20 + k * 72, 2.5, 1.2); ctx.fill(); }
@@ -2713,6 +2699,12 @@ function draw() {
   ctx.setTransform(dpr * scale, 0, 0, dpr * scale, -camX * scale * dpr, -camY * scale * dpr);
   const cx0 = Math.floor(camX / CELL_W) - 1, cx1 = Math.floor((camX + viewW) / CELL_W) + 1;
   const cy0 = Math.floor(camY / CELL_H) - 1, cy1 = Math.floor((camY + viewH) / CELL_H) + 1;
+  ctx.fillStyle = '#d2b47a';
+  for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
+    const ox = cx * CELL_W, oy = cy * CELL_H;
+    ctx.fillRect(ox + 400, oy, 60, CELL_H);
+    ctx.fillRect(ox, oy + 706, CELL_W, 54);
+  }
   const vis = [];
   for (let cy = cy0; cy <= cy1; cy++) for (let cx = cx0; cx <= cx1; cx++) {
     const lot = cells.get(ck(cx, cy));
@@ -3702,25 +3694,6 @@ function frame(now) {
     return c;
   })();
 
-  sprites['cell-path'] = (() => {
-    const W = CELL_W, H = 60;
-    const c = makeSprite(W, H, () => {
-      const pathGrad = ctx.createLinearGradient(0, 0, 0, 54);
-      pathGrad.addColorStop(0, '#d9bd84'); pathGrad.addColorStop(1, '#c4a870');
-      ctx.fillStyle = pathGrad; ctx.fillRect(0, 0, CELL_W, 54);
-    }, 0);
-    return c;
-  })();
-
-  sprites['cell-side'] = (() => {
-    const W = 64, H = CELL_H;
-    const c = makeSprite(W, H, () => {
-      const sideGrad = ctx.createLinearGradient(0, 0, 60, 0);
-      sideGrad.addColorStop(0, '#d9bd84'); sideGrad.addColorStop(1, '#c4a870');
-      ctx.fillStyle = sideGrad; ctx.fillRect(0, 0, 60, CELL_H);
-    }, 0);
-    return c;
-  })();
 
   for (let sz = 20; sz <= 33; sz++) {
     const r = sz;
