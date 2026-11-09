@@ -315,25 +315,27 @@ function buzz(ms) { if (!S.vibe) return; try { if (navigator.vibrate) navigator.
 const cv = document.getElementById('game');
 let ctx = cv.getContext('2d');
 
-const playerImg = new Image();
-playerImg.src = 'player-sprite.png';
-let playerImgReady = false;
-playerImg.onload = () => { playerImgReady = true; };
+function loadImg(src) { const img = new Image(); img.src = src; img.ready = false; img.onload = () => { img.ready = true; }; return img; }
+const imgCache = {};
+function cachedImg(src) { if (!imgCache[src]) imgCache[src] = loadImg(src); return imgCache[src]; }
+const playerImg = loadImg('player-sprite.png');
+const chefImg = loadImg('chef-sprite.png');
+const staffImg = loadImg('employee-manager-sprites.png');
 
-const chefImg = new Image();
-chefImg.src = 'chef-sprite.png';
-let chefImgReady = false;
-chefImg.onload = () => { chefImgReady = true; };
-
-const staffImg = new Image();
-staffImg.src = 'employee-manager-sprites.png';
-let staffImgReady = false;
-staffImg.onload = () => { staffImgReady = true; };
-
-const townImg = new Image();
-townImg.src = 'town-people-sprite.png';
-let townImgReady = false;
-townImg.onload = () => { townImgReady = true; };
+const CHAR_COUNT = 10;
+const CHAR_DEFS = [
+  { walk: 'Girl-boy-sprite.png', wr: 0, sit: 'sitting-3-sprite.png', sr: 0 },
+  { walk: 'Girl-boy-sprite.png', wr: 2, sit: 'sitting-3-sprite.png', sr: 1 },
+  { walk: 'Grandma-grandpa-sprite.png', wr: 0, sit: 'sitting-4-sprite.png', sr: 0 },
+  { walk: 'Grandma-grandpa-sprite.png', wr: 2, sit: 'sitting-4-sprite.png', sr: 1 },
+  { walk: 'girl-boy-2-sprite.png', wr: 0, sit: 'sitting-2-sprite.png', sr: 0 },
+  { walk: 'girl-boy-2-sprite.png', wr: 2, sit: 'sitting-2-sprite.png', sr: 1 },
+  { walk: 'villagers-2-sprite.png', wr: 0, sit: 'sitting-sprite-4.png', sr: 0 },
+  { walk: 'villagers-2-sprite.png', wr: 2, sit: 'sitting-sprite-4.png', sr: 1 },
+  { walk: 'villagers-3-sprite.png', wr: 0, sit: 'sitting-sprite.png', sr: 0 },
+  { walk: 'villagers-3-sprite.png', wr: 2, sit: 'sitting-sprite.png', sr: 1 },
+];
+for (const d of CHAR_DEFS) { d.walkImg = cachedImg(d.walk); d.sitImg = cachedImg(d.sit); }
 
 /* ================= sprite system ================= */
 const sprites = {};
@@ -1061,7 +1063,7 @@ function spawnCustomer(lot) {
   const c = {
     lot, x: clamp(lot.qx + side * rand(110, 200), lot.ox + 10, lot.ox + CELL_W - 10), y: lot.oy + rand(722, 748), state: 'enter',
     want: 1, got: 0, seat: null, noSeat: false, noPrize: false, station: null, win: false, prizeIdx: -1,
-    shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: 0, moving: false, face: 1, lastDir: 'down', spriteIdx: Math.floor(Math.random() * 8), t: 0, age: 0, alpha: 0,
+    shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: 0, moving: false, face: 1, lastDir: 'down', spriteIdx: Math.floor(Math.random() * CHAR_COUNT), t: 0, age: 0, alpha: 0,
     speed: rand(62, 80), atFront: false, exitDelay: 0, balloon: Math.random() < 0.2 ? pick(BALLOONS) : null
   };
   c.path = [{ x: lot.qx, y: lot.oy + 735 }];
@@ -1344,7 +1346,7 @@ function updateRunner(b, dt) {
 function newVisitor(init) {
   const near = lots.filter(l => inView(l.ox - 150, l.ox + CELL_W + 150, l.oy - 150, l.oy + CELL_H + 150));
   const l = pick(near.length ? near : lots), dir = Math.random() < 0.5 ? 1 : -1, sp = rand(22, 42);
-  const v = { shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: rand(0, 6), moving: true, face: dir, lastDir: 'down', spriteIdx: Math.floor(Math.random() * 8), balloon: Math.random() < 0.45 ? pick(BALLOONS) : null };
+  const v = { shirt: pick(SHIRTS), skin: pick(SKINS), hair: pick(HAIRS), walk: rand(0, 6), moving: true, face: dir, lastDir: 'down', spriteIdx: Math.floor(Math.random() * CHAR_COUNT), balloon: Math.random() < 0.45 ? pick(BALLOONS) : null };
   if (Math.random() < 0.35) Object.assign(v, { x: l.ox + rand(412, 448), y: init ? l.oy + rand(0, CELL_H) : (dir > 0 ? camY - 30 : camY + viewH + 30), vx: 0, vy: dir * sp, face: 1, lastDir: dir > 0 ? 'down' : 'up' });
   else Object.assign(v, { x: init ? rand(camX, camX + viewW) : (dir > 0 ? camX - 30 : camX + viewW + 30), y: l.oy + rand(720, 752), vx: dir * sp, vy: 0, lastDir: dir > 0 ? 'right' : 'left' });
   return v;
@@ -2210,7 +2212,7 @@ function drawPlush(x, y, s, fancy, idx) {
 function drawPlayer() {
   const lot = lotByKey(player.carryType);
   const item = player.carryType === 'trash' ? 'trash' : player.carryType === 'prize' ? 'plush' : lot ? lot.type : 'donut';
-  if (playerImgReady) {
+  if (playerImg.ready) {
     const row = dirCol4(player);
     const col = player.moving ? 1 + (Math.floor(player.walk) % 3) : 0;
     drawSpriteSheet(playerImg, player, row, col, 48, 48);
@@ -2252,12 +2254,12 @@ function drawSpriteItems(e, n, item, boosted) {
 }
 function drawStaff(w) {
   const lot = w.lot, th = lot.def.theme;
-  if (w.role === 'helper' && chefImgReady) {
+  if (w.role === 'helper' && chefImg.ready) {
     const row = dirCol4(w);
     const col = w.moving ? 1 + (Math.floor(w.walk) % 3) : 0;
     drawSpriteSheet(chefImg, w, row, col, 48, 48);
     drawSpriteItems(w, w.carry, lot.type, lot.boosted);
-  } else if (staffImgReady && (w.role === 'cashier' || w.role === 'operator' || w.role === 'barker' || w.role === 'runner' || w.role === 'manager')) {
+  } else if (staffImg.ready && (w.role === 'cashier' || w.role === 'operator' || w.role === 'barker' || w.role === 'runner' || w.role === 'manager')) {
     let staffRow;
     if (w.role === 'cashier') staffRow = 0;
     else if (w.role === 'operator') staffRow = 1;
@@ -2283,10 +2285,45 @@ function bubble(x, y) {
   rr(x - 22, y - 12, 44, 24, 10); ctx.fillStyle = '#ffffff'; ctx.fill();
   ctx.beginPath(); ctx.moveTo(x - 5, y + 11); ctx.lineTo(x, y + 18); ctx.lineTo(x + 5, y + 11); ctx.fill();
 }
-function townSpritePos(idx) {
-  const row = Math.floor(idx / 2);
-  const baseCol = (idx % 2) * 2;
-  return { row, baseCol };
+function drawBalloon(x, y, color) {
+  const bx = x + 12, byy = y - 70 + Math.sin(time * 2 + x) * 2;
+  ctx.strokeStyle = 'rgba(60,40,30,0.6)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x + 8, y - 18); ctx.quadraticCurveTo(x + 14, y - 40, bx, byy + 10); ctx.stroke();
+  ctx.fillStyle = color; ctx.beginPath(); ctx.ellipse(bx, byy, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.ellipse(bx - 3, byy - 4, 2, 3, 0, 0, Math.PI * 2); ctx.fill();
+}
+function drawCharWalk(e, charIdx, drawW, drawH) {
+  const def = CHAR_DEFS[charIdx];
+  if (!def || !def.walkImg.ready) return false;
+  const FW = 1254 / 4, FH = 1254 / 4;
+  const dir = e.lastDir || 'down';
+  let row, col;
+  if (dir === 'down') { row = def.wr; col = e.moving ? 1 : 0; }
+  else if (dir === 'up') { row = def.wr; col = e.moving ? 3 : 2; }
+  else if (dir === 'left') { row = def.wr + 1; col = e.moving ? 1 : 0; }
+  else { row = def.wr + 1; col = e.moving ? 3 : 2; }
+  if (e.moving && Math.floor(e.walk) % 2 === 0) {
+    if (dir === 'down' || dir === 'up') col = (dir === 'down') ? 0 : 2;
+    else col = (dir === 'left') ? 0 : 2;
+  }
+  drawSpriteShadow(e.x, e.y);
+  ctx.drawImage(def.walkImg, col * FW, row * FH, FW, FH, e.x - drawW / 2, e.y - drawH + 6, drawW, drawH);
+  return true;
+}
+function drawCharSit(e, charIdx, drawW, drawH) {
+  const def = CHAR_DEFS[charIdx];
+  if (!def || !def.sitImg.ready) return false;
+  const FW = 1774 / 4, FH = 887 / 2;
+  const dir = e.lastDir || 'down';
+  let col;
+  if (dir === 'down') col = 0;
+  else if (dir === 'left') col = 1;
+  else if (dir === 'right') col = 2;
+  else col = 3;
+  const row = def.sr;
+  drawSpriteShadow(e.x, e.y);
+  ctx.drawImage(def.sitImg, col * FW, row * FH, FW, FH, e.x - drawW / 2, e.y - drawH + 6, drawW, drawH);
+  return true;
 }
 function drawCustomer(c) {
   if (c.state === 'riding' || (c.state === 'leaving' && c.exitDelay > 0)) return;
@@ -2295,22 +2332,17 @@ function drawCustomer(c) {
   let stack = 0, item = lot.type, idx = 0;
   if (food && (c.state === 'queue' || c.state === 'toTable')) stack = c.got;
   if (lot.kind === 'game' && c.prizeIdx >= 0) { stack = 1; item = 'plush'; idx = c.prizeIdx; }
-  if (townImgReady && c.spriteIdx != null && c.state !== 'eating') {
-    const tp = townSpritePos(c.spriteIdx);
-    const dir = c.lastDir || 'down';
-    const facingBack = (dir === 'up');
-    const col = tp.baseCol + (facingBack ? 1 : 0);
-    drawSpriteSheet(townImg, c, tp.row, col, 44, 44);
+  const isSitting = c.state === 'eating';
+  let drawn = false;
+  if (c.spriteIdx != null) {
+    if (isSitting) drawn = drawCharSit(c, c.spriteIdx, 44, 44);
+    else drawn = drawCharWalk(c, c.spriteIdx, 44, 44);
+  }
+  if (drawn) {
     if (stack > 0) drawSpriteItems(c, stack, item, lot.boosted);
-    if (c.balloon) {
-      const bx = c.x + 12, byy = c.y - 70 + Math.sin(time * 2 + c.x) * 2;
-      ctx.strokeStyle = 'rgba(60,40,30,0.6)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(c.x + 8, c.y - 18); ctx.quadraticCurveTo(c.x + 14, c.y - 40, bx, byy + 10); ctx.stroke();
-      ctx.fillStyle = c.balloon; ctx.beginPath(); ctx.ellipse(bx, byy, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.ellipse(bx - 3, byy - 4, 2, 3, 0, 0, Math.PI * 2); ctx.fill();
-    }
+    if (c.balloon) drawBalloon(c.x, c.y, c.balloon);
   } else {
-    drawPerson(c, { shirt: c.shirt, skin: c.skin, hair: c.hair, sit: c.state === 'eating', stack, item, idx, boost: lot.boosted, balloon: c.balloon });
+    drawPerson(c, { shirt: c.shirt, skin: c.skin, hair: c.hair, sit: isSitting, stack, item, idx, boost: lot.boosted, balloon: c.balloon });
   }
   const by = c.y - 70 + Math.sin(time * 4) * 1.5;
   if (food && c.atFront && c.got < c.want) {
@@ -2722,19 +2754,10 @@ function draw() {
   for (const w of staff) if (inView(w.x - 30, w.x + 30, w.y - 80, w.y + 20)) items.push({ y: w.y + 0.1, d: () => drawStaff(w) });
   items.push({ y: player.y, d: drawPlayer });
   for (const v of visitors) if (inView(v.x - 30, v.x + 30, v.y - 80, v.y + 20)) items.push({ y: v.y, d: () => {
-    if (townImgReady && v.spriteIdx != null) {
-      const tp = townSpritePos(v.spriteIdx);
-      const dir = v.lastDir || 'down';
-      const col = tp.baseCol + (dir === 'up' ? 1 : 0);
-      drawSpriteSheet(townImg, v, tp.row, col, 44, 44);
-      if (v.balloon) {
-        const bx = v.x + 12, byy = v.y - 70 + Math.sin(time * 2 + v.x) * 2;
-        ctx.strokeStyle = 'rgba(60,40,30,0.6)'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(v.x + 8, v.y - 18); ctx.quadraticCurveTo(v.x + 14, v.y - 40, bx, byy + 10); ctx.stroke();
-        ctx.fillStyle = v.balloon; ctx.beginPath(); ctx.ellipse(bx, byy, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.beginPath(); ctx.ellipse(bx - 3, byy - 4, 2, 3, 0, 0, Math.PI * 2); ctx.fill();
-      }
-    } else drawPerson(v, { shirt: v.shirt, skin: v.skin, hair: v.hair, balloon: v.balloon });
+    let drawn = false;
+    if (v.spriteIdx != null) drawn = drawCharWalk(v, v.spriteIdx, 44, 44);
+    if (drawn) { if (v.balloon) drawBalloon(v.x, v.y, v.balloon); }
+    else drawPerson(v, { shirt: v.shirt, skin: v.skin, hair: v.hair, balloon: v.balloon });
   } });
   items.sort((a, b) => a.y - b.y);
   for (const it of items) it.d();
