@@ -1796,12 +1796,8 @@ function drawFoodGround(lot) {
   const sp = sprites['food-ground'];
   if (sp) { ctx.drawImage(sp, lot.ox, lot.oy); return; }
   const ox = lot.ox;
-  const sandGrad = ctx.createRadialGradient(ox + 130, 548, 10, ox + 130, 548, 130);
-  sandGrad.addColorStop(0, '#eedcaa'); sandGrad.addColorStop(1, '#dcc88e');
-  ctx.fillStyle = sandGrad; ell(ox + 130, 548, 112, 118); ctx.fill();
-  const pathGrad = ctx.createLinearGradient(ox + 212, 0, ox + 268, 0);
-  pathGrad.addColorStop(0, '#e8d29b'); pathGrad.addColorStop(0.5, '#eedcaa'); pathGrad.addColorStop(1, '#dcc88e');
-  ctx.fillStyle = pathGrad; rr(ox + 212, 378, 56, 340, 10); ctx.fill();
+  ctx.fillStyle = '#d2b47a'; ell(ox + 130, 548, 112, 118); ctx.fill();
+  ctx.fillStyle = '#d2b47a'; rr(ox + 212, 378, 56, 340, 10); ctx.fill();
   for (let y = 158; y < 380; y += 20) {
     for (let x = 30; x < 370; x += 20) {
       const even = (((x - 30) / 20) + ((y - 158) / 20)) % 2 === 0;
@@ -2040,9 +2036,7 @@ function drawRideGround(lot) {
   const spPath = sprites['ride-ground-path'];
   if (spPath) ctx.drawImage(spPath, ox, lot.oy + 378);
   else {
-    const pathGrad1 = ctx.createLinearGradient(ox + 212, 0, ox + 268, 0);
-    pathGrad1.addColorStop(0, '#dcc88e'); pathGrad1.addColorStop(0.5, '#eedcaa'); pathGrad1.addColorStop(1, '#dcc88e');
-    ctx.fillStyle = pathGrad1; rr(ox + 212, 378, 56, 340, 10); ctx.fill();
+    ctx.fillStyle = '#d2b47a'; rr(ox + 212, 378, 56, 340, 10); ctx.fill();
     rr(ox + 122, 378, 36, 340, 10); ctx.fill();
   }
   const isHaunted = lot.type === 'haunted';
@@ -2599,8 +2593,8 @@ function drawGameGround(lot) {
   const sp = sprites['game-ground'];
   if (sp) ctx.drawImage(sp, 0, 378);
   else {
-    ctx.fillStyle = '#e8d29b'; rr(172, 378, 56, 340, 10); ctx.fill();
-    ctx.fillStyle = '#e8d29b'; rr(40, 380, 320, 84, 18); ctx.fill();
+    ctx.fillStyle = '#d2b47a'; rr(172, 378, 56, 340, 10); ctx.fill();
+    ctx.fillStyle = '#d2b47a'; rr(40, 380, 320, 84, 18); ctx.fill();
   }
   const d = { x: 362, y: 446 }, carrying = player.carryType === 'prize';
   ctx.setLineDash([5, 4]); ctx.lineDashOffset = -time * 10; ctx.strokeStyle = carrying ? '#ffd23f' : 'rgba(255,255,255,0.8)'; ctx.lineWidth = carrying ? 3 : 2;
@@ -3443,12 +3437,8 @@ function frame(now) {
   sprites['food-ground'] = (() => {
     const W = CELL_W, H = CELL_H;
     const c = makeSprite(W, H, () => {
-      const sandGrad = ctx.createRadialGradient(130, 548, 10, 130, 548, 130);
-      sandGrad.addColorStop(0, '#eedcaa'); sandGrad.addColorStop(1, '#dcc88e');
-      ctx.fillStyle = sandGrad; ell(130, 548, 112, 118); ctx.fill();
-      const pathGrad = ctx.createLinearGradient(212, 0, 268, 0);
-      pathGrad.addColorStop(0, '#e8d29b'); pathGrad.addColorStop(0.5, '#eedcaa'); pathGrad.addColorStop(1, '#dcc88e');
-      ctx.fillStyle = pathGrad; rr(212, 378, 56, 340, 10); ctx.fill();
+      ctx.fillStyle = '#d2b47a'; ell(130, 548, 112, 118); ctx.fill();
+      ctx.fillStyle = '#d2b47a'; rr(212, 378, 56, 340, 10); ctx.fill();
       for (let y = 158; y < 380; y += 20) {
         for (let x = 30; x < 370; x += 20) {
           const even = (((x - 30) / 20) + ((y - 158) / 20)) % 2 === 0;
@@ -3498,8 +3488,8 @@ function frame(now) {
   sprites['game-ground'] = (() => {
     const W = CELL_W, H = 130;
     const c = makeSprite(W, H, () => {
-      ctx.fillStyle = '#e8d29b'; rr(172, 0, 56, 130, 10); ctx.fill();
-      ctx.fillStyle = '#e8d29b'; rr(40, 2, 320, 84, 18); ctx.fill();
+      ctx.fillStyle = '#d2b47a'; rr(172, 0, 56, 130, 10); ctx.fill();
+      ctx.fillStyle = '#d2b47a'; rr(40, 2, 320, 84, 18); ctx.fill();
     }, 0);
     return c;
   })();
@@ -3507,9 +3497,7 @@ function frame(now) {
   sprites['ride-ground-path'] = (() => {
     const W = CELL_W, H = 380;
     const c = makeSprite(W, H, () => {
-      const pathGrad1 = ctx.createLinearGradient(212, 0, 268, 0);
-      pathGrad1.addColorStop(0, '#dcc88e'); pathGrad1.addColorStop(0.5, '#eedcaa'); pathGrad1.addColorStop(1, '#dcc88e');
-      ctx.fillStyle = pathGrad1; rr(212, 0, 56, 340, 10); ctx.fill();
+      ctx.fillStyle = '#d2b47a'; rr(212, 0, 56, 340, 10); ctx.fill();
       rr(122, 0, 36, 340, 10); ctx.fill();
     }, 0);
     return c;
