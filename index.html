@@ -580,7 +580,7 @@ const hrOpen = () => lots.some(l => l.kind === 'hr' && l.open);
 const hrFor = lot => !!S.unlocked['hr:' + lot.key];
 function hrLotKey() { const l = lots.find(l => l.kind === 'hr'); return l ? l.key : 'c1_0'; }
 const staffMult = () => 1 + 0.15 * (S.levels[hrLotKey() + ':hrspeed'] || S.levels['c0_0:hrspeed'] || 0);
-const staffCap = () => 6 + 2 * (S.levels[hrLotKey() + ':hrcarry'] || S.levels['c0_0:hrcarry'] || 0);
+const staffCap = () => Math.min(6, 2 + 2 * (S.levels[hrLotKey() + ':hrcarry'] || S.levels['c0_0:hrcarry'] || 0));
 function hrPads(lot) {
   const k = lot.key, out = [];
   const targets = lots.filter(l => l.open && l.kind !== 'hr' && !hrFor(l));
@@ -596,8 +596,8 @@ function hrPads(lot) {
   const baseY = lot.oy + 440 + Math.ceil(targets.length / cols) * 70 + (targets.length ? 10 : 0);
   if (sp < 8) out.push({ id: k + ':hrspeed:' + (sp + 1), key: k, kind: 'level', stat: 'hrspeed', price: nice(250 * Math.pow(2.2, sp)),
     x: lot.ox + 150, y: baseY, icon: 'runner', label: 'Staff speed ' + (sp + 2), half: 28 });
-  if (ca < 5) out.push({ id: k + ':hrcarry:' + (ca + 1), key: k, kind: 'level', stat: 'hrcarry', price: nice(300 * Math.pow(2.4, ca)),
-    x: lot.ox + 280, y: baseY, icon: 'box', label: 'Staff carry ' + (staffCap() + 2), half: 28 });
+  if (staffCap() < 6) out.push({ id: k + ':hrcarry:' + (ca + 1), key: k, kind: 'level', stat: 'hrcarry', price: nice(300 * Math.pow(2.4, ca)),
+    x: lot.ox + 280, y: baseY, icon: 'box', label: 'Staff carry ' + Math.min(6, staffCap() + 2), half: 28 });
   return out;
 }
 function drawHRBuilding(lot) {
