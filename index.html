@@ -55,6 +55,8 @@ body{
 .money{display:flex;align-items:center;gap:6px;background:var(--pill);color:var(--pill-ink);
   padding:5px 14px 5px 5px;border-radius:999px;font-weight:700;font-size:22px;line-height:1;transition:transform .12s}
 .money.pop{transform:scale(1.08)}
+.bill{width:32px;height:20px;border-radius:4px;background:#5cc46f;color:#ffffff;display:grid;place-items:center;font-size:14px;font-weight:700;
+  box-shadow:inset 0 -2px 0 #2f8a47;border:1.5px solid #3a9e52}
 .coin{width:28px;height:28px;border-radius:50%;background:#5cc46f;color:#ffffff;display:grid;place-items:center;font-size:17px;
   box-shadow:inset 0 -3px 0 #2f8a47}
 .coins{display:flex;align-items:center;gap:5px;background:var(--pill);color:var(--pill-ink);border:0;cursor:pointer;pointer-events:auto;
@@ -135,7 +137,7 @@ body{
 <div id="wrap">
   <canvas id="game" aria-label="Midway Donuts game. Drag anywhere or use arrow keys to move."></canvas>
   <div id="hud">
-    <div class="money" id="moneyBox"><span class="coin">$</span><span id="money">0</span></div>
+    <div class="money" id="moneyBox"><span class="bill">$</span><span id="money">0</span></div>
     <button class="coins" id="coinsBtn" aria-label="Coins: open the coin shop"><span class="coin" aria-hidden="true">C</span><span id="coins">0</span><span class="plus" aria-hidden="true">+</span></button>
     <div class="price" id="price">$4 a donut</div>
     <button id="menuBtn" aria-label="Open menu">☰</button>
