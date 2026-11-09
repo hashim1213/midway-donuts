@@ -1101,7 +1101,7 @@ function updateCustomers(lot, dt) {
       moveTo(c, lot.qx, lot.qy0 + k * L.qgap, c.speed, dt);
       c.atFront = k === 0 && Math.abs(c.y - lot.qy0) < 1 && Math.abs(c.x - lot.qx) < 1;
     } else if (c.state === 'toTable') {
-      if (followPath(c, dt)) { c.state = 'eating'; c.t = 0; c.face = 1; }
+      if (followPath(c, dt)) { c.state = 'eating'; c.t = 0; c.face = 1; c.lastDir = 'down'; }
     } else if (c.state === 'eating') {
       c.t += dt; c.moving = false;
       if (c.t > EAT_T) {
